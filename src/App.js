@@ -1,11 +1,45 @@
 import './App.css';
 import Comments from './Components/Comments';
 import styled from 'styled-components';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
 
 function App() {
+  const [data, setData] = useState({});
+  
+  const handleAddComment = async (id, payload) => {
+    let data = await axios.get("https://woowax.herokuapp.com/data");
+    data = data.data;
+
+    handleUpdateData(data);
+    function handleUpdateData(data) {
+      if (data) {
+        for (let i = 0; i < data.length; i++){
+          if (data[i].id === id) {
+            data[i].replies.push(payload);
+            return
+          }
+          handleUpdateData(data[i].replies);
+        }
+      }
+    }
+
+    await axios.patch("https://woowax.herokuapp.com/data/001", data[0]);
+    getData();
+  }
+
+  const getData = async () => {
+    let data = await axios.get("https://woowax.herokuapp.com/data");
+    setData(data.data[0]);
+    console.log('data.data[0]:', data.data[0])
+  }
+  useEffect(() => {
+    getData();
+  },[])
+
   return (
     <Wrapper className="App">
-      <Comments data={data}></Comments>
+      <Comments data={data} handleAddComment={handleAddComment}></Comments>
     </Wrapper>
   );
 }
@@ -15,41 +49,8 @@ width: fit-content;
 border-radius: 8px;
 padding: 20px 0;
 /* padding-right: 20px; */
-background-color: #D4D4D4;
+background-color: #FEF1E6;
 margin: 40px auto;
 `;
 
-const data =
-  {
-    id: "001",
-    author: "albert",
-    body: "Whats the status?",
-    timestamp: "Sun Aug 02 2020 18:08:45 GMT+0530",
-    points: "2",
-    replies: [
-      {
-        id: "003",
-        author: "haren",
-        body: "Wrote the test suites, waiting for approval?",
-        timestamp: "Sun Aug 02 2020 18:12:45 GMT+0530",
-        points: "3",
-        replies: [
-          {
-            id: "004",
-            author: "albert",
-            body: "Thanks for the update!",
-            timestamp: "Sun Aug 02 2020 18:15:45 GMT+0530",
-            points: "8"
-          }
-        ]
-      },
-      {
-        id: "002",
-        author: "Nrupul",
-        body: "looking forward for the demo!",
-        timestamp: "Sun Aug 02 2020 18:10:45 GMT+0530",
-        points: "2"
-      }
-    ]
-  }
 export default App;
